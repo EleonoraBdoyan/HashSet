@@ -1,0 +1,90 @@
+class ListNode:
+
+    def __init__(self, key):
+        self.key = key
+        self.next = None
+
+class HashSet:
+
+    def __init__(self, load_factor=0.75, initial_capacity=16):
+        self.load_factor = load_factor
+        self.size = initial_capacity
+        self.buckets = [None] * self.size
+        self.count = 0
+
+    def __hash(self, key):
+        return key % self.size
+
+    def __check_load_factor(self):
+        return self.count / self.size >= self.load_factor
+
+    def display(self):
+        for bucket in self.buckets:
+            current = bucket
+            while current:
+                print(f"{current.key}", end=",")
+                current = current.next
+        print()
+
+    def add(self, key):
+        if self.__check_load_factor():
+            self.__rehash()
+        index = self.__hash(key)
+        if not self.buckets[index]:
+            self.buckets[index] = ListNode(key)
+            self.count += 1
+        else:
+            current = self.buckets[index]
+            while current.next:
+                if current.key == key:
+                    return
+                current = current.next
+            if current.key != key:
+                current.next = ListNode(key)
+                self.count += 1
+
+    def remove(self, key):
+        index = self.__hash(key)
+        if not self.buckets[index]:
+            raise ValueError(f"{key} not in Hash Set")
+        if self.buckets[index].key == key:
+            self.buckets[index] = self.buckets[index].next
+            self.count -= 1
+            return
+        else:
+            current = self.buckets[index]
+            while current.next:
+                if current.next.key == key:
+                    current.next = current.next.next
+                    self.count -= 1
+                    return
+                current = current.next
+        raise ValueError(f"{key} not in Hash Set")
+
+    def __rehash(self):
+        new_size = self.size * 2
+        new_buckets = [None] * new_size
+        for bucket in self.buckets:
+            current = bucket
+            while current:
+                key = current.key
+                new_index = key % new_size
+                if not new_buckets[new_index]:
+                    new_buckets[new_index] = ListNode(key)
+                else:
+                    new_current = new_buckets[new_index]
+                    while new_current.next:
+                        new_current = new_current.next
+                    new_current.next = ListNode(key)
+                current = current.next
+        self.size = new_size
+        self.buckets = new_buckets
+
+    def contains(self, key):
+        index = self.__hash(key)
+        current = self.buckets[index]
+        while current:
+            if current.key == key:
+                return True
+            current = current.next
+        return False
